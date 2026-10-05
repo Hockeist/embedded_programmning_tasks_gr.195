@@ -1,0 +1,67 @@
+const int LED_PIN = 9;
+const int BUTTON_PIN = 2;
+
+bool gammaMode = false;
+
+int brightness = 0;
+int direction = 1;
+
+unsigned long lastUpdate = 0;
+unsigned long lastButtonPress = 0;
+
+const unsigned long UPDATE_INTERVAL = 4;
+const unsigned long DEBOUNCE_TIME = 50;
+
+bool lastButtonState = HIGH;
+
+const float GAMMA = 2.2;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  analogWrite(LED_PIN, 0);
+}
+
+void loop() {
+  unsigned long currentTime = millis();
+
+  bool buttonState = digitalRead(BUTTON_PIN);
+
+  if (lastButtonState == HIGH &&
+      buttonState == LOW &&
+      currentTime - lastButtonPress >= DEBOUNCE_TIME) {
+
+    gammaMode = !gammaMode;
+    lastButtonPress = currentTime;
+  }
+
+  lastButtonState = buttonState;
+
+  if (currentTime - lastUpdate >= UPDATE_INTERVAL) {
+    lastUpdate = currentTime;
+
+    brightness += direction;
+
+    if (brightness >= 255) {
+      brightness = 255;
+      direction = -1;
+    }
+
+    if (brightness <= 0) {
+      brightness = 0;
+      direction = 1;
+    }
+
+    int outputBrightness;
+
+    if (gammaMode) {
+      float normalized = brightness / 255.0;
+      outputBrightness = pow(normalized, GAMMA) * 255.0;
+    } else {
+      outputBrightness = brightness;
+    }
+
+    analogWrite(LED_PIN, outputBrightness);
+  }
+}
