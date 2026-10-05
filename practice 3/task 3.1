@@ -1,0 +1,94 @@
+const int CAR_GREEN = 8;
+const int CAR_YELLOW = 9;
+const int CAR_RED = 10;
+
+const int PED_GREEN = 11;
+const int PED_RED = 12;
+
+const int BUTTON = 2;
+
+const unsigned long CAR_GREEN_BLINK_TIME = 500;
+const unsigned long YELLOW_TIME = 2000;
+const unsigned long PED_GREEN_TIME = 5000;
+const unsigned long PED_GREEN_BLINK_TIME = 500;
+
+const int CAR_GREEN_BLINKS = 3;
+const int PED_GREEN_BLINKS = 3;
+
+const unsigned long DEBOUNCE_TIME = 50;
+
+void normalMode() {
+  digitalWrite(CAR_GREEN, HIGH);
+  digitalWrite(CAR_YELLOW, LOW);
+  digitalWrite(CAR_RED, LOW);
+
+  digitalWrite(PED_GREEN, LOW);
+  digitalWrite(PED_RED, HIGH);
+}
+
+void pedestrianRequest() {
+
+  for (int i = 0; i < CAR_GREEN_BLINKS; i++) {
+    digitalWrite(CAR_GREEN, LOW);
+    delay(CAR_GREEN_BLINK_TIME);
+
+    digitalWrite(CAR_GREEN, HIGH);
+    delay(CAR_GREEN_BLINK_TIME);
+  }
+
+  digitalWrite(CAR_GREEN, LOW);
+
+  digitalWrite(CAR_YELLOW, HIGH);
+  delay(YELLOW_TIME);
+
+  digitalWrite(CAR_YELLOW, LOW);
+
+  digitalWrite(CAR_RED, HIGH);
+
+  digitalWrite(PED_RED, LOW);
+
+  digitalWrite(PED_GREEN, HIGH);
+  delay(PED_GREEN_TIME);
+
+  for (int i = 0; i < PED_GREEN_BLINKS; i++) {
+    digitalWrite(PED_GREEN, LOW);
+    delay(PED_GREEN_BLINK_TIME);
+
+    digitalWrite(PED_GREEN, HIGH);
+    delay(PED_GREEN_BLINK_TIME);
+  }
+
+  digitalWrite(PED_GREEN, LOW);
+
+  normalMode();
+}
+
+
+void setup() {
+  pinMode(CAR_GREEN, OUTPUT);
+  pinMode(CAR_YELLOW, OUTPUT);
+  pinMode(CAR_RED, OUTPUT);
+
+  pinMode(PED_GREEN, OUTPUT);
+  pinMode(PED_RED, OUTPUT);
+
+  pinMode(BUTTON, INPUT_PULLUP);
+
+  normalMode();
+}
+
+
+void loop() {
+
+  if (digitalRead(BUTTON) == LOW) {
+    delay(DEBOUNCE_TIME);
+    if (digitalRead(BUTTON) == LOW) {
+      pedestrianRequest();
+      while (digitalRead(BUTTON) == LOW) {
+        delay(10);
+      }
+
+      delay(DEBOUNCE_TIME);
+    }
+  }
+}
