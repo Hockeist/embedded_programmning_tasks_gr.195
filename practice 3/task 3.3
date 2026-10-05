@@ -1,0 +1,86 @@
+const int BUTTON = 2;
+const int LED_N1 = 8;
+const int LED_N2 = 9;
+
+const unsigned long SHORT_PRESS_TIME = 500;
+const unsigned long LONG_PRESS_TIME = 1000;
+const unsigned long LED_N2_TIME = 3000;
+const unsigned long DEBOUNCE_TIME = 50;
+
+int buttonState = HIGH;
+int lastReading = HIGH;
+
+unsigned long lastDebounceTime = 0;
+
+unsigned long pressStartTime = 0;
+
+bool buttonPressed = false;
+
+bool ledN2Active = false;
+unsigned long ledN2StartTime = 0;
+
+
+void setup() {
+  pinMode(BUTTON, INPUT_PULLUP);
+
+  pinMode(LED_N1, OUTPUT);
+  pinMode(LED_N2, OUTPUT);
+
+  digitalWrite(LED_N1, LOW);
+  digitalWrite(LED_N2, LOW);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int reading = digitalRead(BUTTON);
+  if (reading != lastReading) {
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) >= DEBOUNCE_TIME) {
+
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      if (buttonState == LOW) {
+        buttonPressed = true;
+        pressStartTime = millis();
+      }
+
+      else {
+
+        if (buttonPressed) {
+          unsigned long pressDuration =
+              millis() - pressStartTime;
+
+          if (pressDuration < SHORT_PRESS_TIME) {
+            digitalWrite(LED_N1, !digitalRead(LED_N1));
+
+            Serial.println("Short press");
+          }
+          
+          else if (pressDuration > LONG_PRESS_TIME) {
+            digitalWrite(LED_N2, HIGH);
+            ledN2Active = true;
+            ledN2StartTime = millis();
+            Serial.println("Long press");
+          }
+          else {
+            Serial.println("Medium press - no action");
+          }
+          buttonPressed = false;
+        }
+      }
+    }
+  }
+
+  lastReading = reading;
+
+  if (ledN2Active) {
+    if ((millis() - ledN2StartTime) >= LED_N2_TIME) {
+      digitalWrite(LED_N2, LOW);
+      ledN2Active = false;
+    }
+  }
+}
