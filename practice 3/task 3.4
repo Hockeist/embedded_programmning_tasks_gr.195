@@ -1,0 +1,124 @@
+const int LED_PINS[] = {4, 5, 6, 7, 8, 9};
+const int LED_COUNT = sizeof(LED_PINS) / sizeof(LED_PINS[0]);
+const int BUTTON = 2;
+const unsigned long DEBOUNCE_TIME = 50;
+
+const unsigned long EFFECT_DELAY = 150;
+int currentEffect = 0;
+const int EFFECT_COUNT = 3;
+
+int buttonState = HIGH;
+int lastReading = HIGH;
+
+unsigned long lastDebounceTime = 0;
+
+void allOff() {
+  for (int i = 0; i < LED_COUNT; i++) {
+    digitalWrite(LED_PINS[i], LOW);
+  }
+}
+
+void runningFire() {
+
+  for (int i = 0; i < LED_COUNT; i++) {
+
+    allOff();
+
+    digitalWrite(LED_PINS[i], HIGH);
+
+    delay(EFFECT_DELAY);
+  }
+}
+
+void oppositeMovement() {
+
+  for (int i = 0; i < LED_COUNT / 2; i++) {
+
+    allOff();
+
+    // Левый светодиод
+    digitalWrite(LED_PINS[i], HIGH);
+
+    // Правый светодиод
+    digitalWrite(LED_PINS[LED_COUNT - 1 - i], HIGH);
+
+    delay(EFFECT_DELAY);
+  }
+}
+
+void fillingAndEmptying() {
+
+  for (int i = 0; i < LED_COUNT; i++) {
+
+    digitalWrite(LED_PINS[i], HIGH);
+
+    delay(EFFECT_DELAY);
+  }
+
+  for (int i = LED_COUNT - 1; i >= 0; i--) {
+
+    digitalWrite(LED_PINS[i], LOW);
+
+    delay(EFFECT_DELAY);
+  }
+}
+
+void nextEffect() {
+
+  currentEffect++;
+
+  if (currentEffect >= EFFECT_COUNT) {
+    currentEffect = 0;
+  }
+
+  allOff();
+
+  Serial.print("Effect: ");
+  Serial.println(currentEffect + 1);
+}
+
+void setup() {
+
+  for (int i = 0; i < LED_COUNT; i++) {
+    pinMode(LED_PINS[i], OUTPUT);
+  }
+
+  pinMode(BUTTON, INPUT_PULLUP);
+
+  // Serial
+  Serial.begin(9600);
+
+  allOff();
+}
+
+  int reading = digitalRead(BUTTON);
+
+  if (reading != lastReading) {
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) >= DEBOUNCE_TIME) {
+
+    if (reading != buttonState) {
+
+      buttonState = reading;
+      if (buttonState == LOW) {
+        nextEffect();
+      }
+    }
+  }
+
+  lastReading = reading;
+
+  if (currentEffect == 0) {
+    runningFire();
+  }
+
+  else if (currentEffect == 1) {
+    oppositeMovement();
+  }
+
+  else if (currentEffect == 2) {
+    fillingAndEmptying();
+  }
+}
