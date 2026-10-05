@@ -1,0 +1,48 @@
+const int LED = 8;
+const int BUTTON = 2;
+
+const unsigned long DEBOUNCE_TIME = 50;
+
+int buttonState = HIGH;
+int lastReading = HIGH;
+
+unsigned long lastDebounceTime = 0;
+bool ledState = LOW;
+unsigned long pressCount = 0;
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  pinMode(BUTTON, INPUT_PULLUP);
+
+  digitalWrite(LED, LOW);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int reading = digitalRead(BUTTON);
+  if (reading != lastReading) {
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) >= DEBOUNCE_TIME) {
+
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // HIGH -> LOW
+      if (buttonState == LOW) {
+
+        ledState = !ledState;
+        digitalWrite(LED, ledState);
+
+        pressCount++;
+
+        Serial.print("Press count: ");
+        Serial.println(pressCount);
+      }
+    }
+  }
+
+  lastReading = reading;
+}
