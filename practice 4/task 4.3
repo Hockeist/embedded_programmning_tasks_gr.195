@@ -1,0 +1,54 @@
+const int POT_PIN = A0;
+const int LED_PIN = 9;
+
+const int ADC_MAX = 1023;
+const int PWM_MAX = 255;
+
+const int DEAD_ZONE = ADC_MAX * 0.02;
+
+unsigned long lastSerialTime = 0;
+const unsigned long SERIAL_INTERVAL = 200;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int adcValue = analogRead(POT_PIN);
+
+  int pwmValue;
+
+  if (adcValue <= DEAD_ZONE) {
+    pwmValue = 0;
+  }
+
+  else if (adcValue >= ADC_MAX - DEAD_ZONE) {
+    pwmValue = PWM_MAX;
+  }
+
+  else {
+    pwmValue = map(
+      adcValue,
+      DEAD_ZONE + 1,
+      ADC_MAX - DEAD_ZONE - 1,
+      0,
+      PWM_MAX
+    );
+  }
+
+  analogWrite(LED_PIN, pwmValue);
+
+  unsigned long currentTime = millis();
+
+  if (currentTime - lastSerialTime >= SERIAL_INTERVAL) {
+    lastSerialTime = currentTime;
+
+    Serial.print("ADC: ");
+    Serial.print(adcValue);
+
+    Serial.print("  PWM: ");
+    Serial.println(pwmValue);
+  }
+}
