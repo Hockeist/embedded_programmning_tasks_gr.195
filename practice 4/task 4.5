@@ -1,0 +1,74 @@
+#include <Servo.h>
+
+const int ledPins[] = {3, 5, 6, 9, 10, 11};
+const int LED_COUNT = 6;
+
+const int BUZZER_PIN = 8;
+const int SERVO_PIN = 7;
+
+Servo myservo;
+
+int brightness = 0;
+int direction = 1;
+
+unsigned long lastUpdate = 0;
+unsigned long lastTone = 0;
+
+const unsigned long PWM_INTERVAL = 5;
+const unsigned long TONE_INTERVAL = 1000;
+
+bool servoAttached = false;
+
+void setup() {
+  for (int i = 0; i < LED_COUNT; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  Serial.begin(9600);
+
+  Serial.println("Запуск эксперимента");
+  Serial.println("Сначала работают только PWM-выводы.");
+}
+
+void loop() {
+  unsigned long currentTime = millis();
+
+  if (currentTime - lastUpdate >= PWM_INTERVAL) {
+    lastUpdate = currentTime;
+
+    brightness += direction;
+
+    if (brightness >= 255) {
+      brightness = 255;
+      direction = -1;
+    }
+
+    if (brightness <= 0) {
+      brightness = 0;
+      direction = 1;
+    }
+
+    for (int i = 0; i < LED_COUNT; i++) {
+      analogWrite(ledPins[i], brightness);
+    }
+  }
+
+  if (currentTime - lastTone >= TONE_INTERVAL) {
+    lastTone = currentTime;
+
+    tone(BUZZER_PIN, 440, 100);
+
+    Serial.println("tone() -> Timer2 -> проверяем D3 и D11");
+  }
+
+  if (!servoAttached && currentTime >= 10000) {
+    myservo.attach(SERVO_PIN);
+    myservo.write(90);
+
+    servoAttached = true;
+
+    Serial.println("Servo attach() -> Timer1 -> проверяем D9 и D10");
+  }
+}
